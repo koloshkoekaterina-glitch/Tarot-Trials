@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Інтерактивний Розклад Карт Таро</title>
+    <!-- Tailwind CSS for modern responsive utility styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #0b0813;
+            overflow-x: hidden;
+        }
+
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* 3D Scene setup */
+        .perspective-1000 {
+            perspective: 1200px;
+        }
+
+        /* 3D Flip Card Effect */
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6), 0 0 15px rgba(212, 175, 55, 0.2);
+            border: 2px solid rgba(212, 175, 55, 0.4);
+        }
+
+        .card-front {
+            transform: rotateY(180deg);
+        }
+
+        /* Mystical Glow Effects */
+        .deck-glow {
+            filter: drop-shadow(0 0 15px rgba(234, 179, 8, 0.4));
+            transition: all 0.3s ease;
+        }
+
+        .deck-glow:hover {
+            filter: drop-shadow(0 0 25px rgba(234, 179, 8, 0.8)) scale(1.02);
+        }
+
+        .drawn-card {
+            transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Custom scrollbar for laid out cards */
+        ::-webkit-scrollbar {
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 12, 29, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.8);
+        }
+
+        /* Sparkle animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(1deg); }
+        }
+
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col justify-between relative bg-no-repeat bg-cover bg-center bg-fixed" 
+      style="background-image: linear-gradient(to bottom, rgba(10, 8, 20, 0.45), rgba(10, 8, 20, 0.65)), url('Taro table_2.jpg');">
+
+    <!-- Mystical Header -->
+    <header class="text-center pt-6 pb-2 px-4 relative z-10">
+        <h1 class="font-cinzel text-3xl md:text-5xl font-bold tracking-widest text-amber-200 drop-shadow-[0_2px_10px_rgba(212,175,55,0.5)]">
+            ТАЄМНИЙ РОЗКЛАД ТАРО
+        </h1>
+        <p class="text-amber-100/80 text-sm md:text-base mt-2 font-light max-w-xl mx-auto italic">
+            Натисніть на колоду, щоб витягнути карту. Потім натисніть на витягнуту карту, щоб відкрити її долю.
+        </p>
+    </header>
+
+    <!-- Main Interactive Area -->
+    <main class="flex-1 flex flex-col items-center justify-center p-4 relative z-10 max-w-6xl mx-auto w-full">
+        
+        <!-- Deck Area -->
+        <div class="flex flex-col items-center mb-8">
+            <div id="deck-container" class="relative cursor-pointer deck-glow perspective-1000 group">
+                <!-- Stacked cards shadow effect -->
+                <div class="absolute inset-0 bg-amber-900/40 rounded-xl transform translate-x-2 translate-y-2 border border-amber-500/30"></div>
+                <div class="absolute inset-0 bg-amber-900/60 rounded-xl transform translate-x-1 translate-y-1 border border-amber-500/30"></div>
+                
+                <!-- Main Deck Box Cover -->
+                <div id="main-deck" class="w-44 h-72 md:w-52 md:h-84 rounded-xl overflow-hidden shadow-2xl relative border-2 border-amber-400/60 transition-transform duration-300 group-active:scale-95 bg-slate-900">
+                    <img src="book cover.jpg" 
+                         alt="Обкладинка колоди Таро" 
+                         class="w-full h-full object-cover object-center"
+                         onerror="this.src='https://placehold.co/400x650/1e1b4b/e2e8f0?text=The+Tarot+Trials'">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-center pb-4">
+                        <span id="deck-status" class="font-cinzel text-xs md:text-sm text-amber-300 font-semibold tracking-wider bg-black/60 px-3 py-1 rounded-full border border-amber-500/40">
+                            Натисніть щоб витягти
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Counter Badge -->
+            <div id="card-counter" class="mt-3 text-xs md:text-sm font-cinzel text-amber-200/90 bg-slate-900/80 px-4 py-1 rounded-full border border-amber-500/30 backdrop-blur-sm">
+                Залишилось карт: 4 / 4
+            </div>
+        </div>
+
+        <!-- Active Laid Cards Layout -->
+        <div class="w-full">
+            <div id="cards-board" class="flex flex-wrap justify-center gap-4 md:gap-6 min-h-[320px] p-4 items-center">
+                <!-- Drawn cards will be dynamically injected here -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Controls -->
+    <footer class="p-4 text-center relative z-10">
+        <button id="reset-btn" 
+                onclick="resetDeck()" 
+                class="hidden font-cinzel bg-gradient-to-r from-amber-700 via-amber-600 to-yellow-600 hover:from-amber-600 hover:to-yellow-500 text-slate-950 font-bold py-2.5 px-8 rounded-full shadow-lg shadow-amber-900/40 transition duration-300 transform hover:scale-105 active:scale-95 border border-amber-300">
+            Зібрати колоду заново ↺
+        </button>
+    </footer>
+
+    <!-- Interactive Logic Script -->
+    <script>
+        // Array defining the sequence of cards with their respective custom backs and fronts
+        const tarotCards = [
+            {
+                id: 1,
+                title: "ВЕЖА",
+                backImg: "🌙🌀✨🛋️📀 #day #night #moon #stars #wallpaper #aesthetic #vibes #fyp #beige #blue #gold #stars.jpg",
+                frontImg: "вежа.jpg",
+                altBack: "Хмари та зорі",
+                altFront: "Вежа Таро"
+            },
+            {
+                id: 2,
+                title: "КОЛЕСО ФОРТУНИ",
+                backImg: "download (2).jpg",
+                frontImg: "фортуна.jpg",
+                altBack: "Медузи в зоряному небі",
+                altFront: "Колесо Фортуни"
+            },
+            {
+                id: 3,
+                title: "МІСЯЦЬ",
+                backImg: "🌙 Lune d’Or & Arabesques Célestes ✨ Oracle Onirique d'Allyssane.jpg",
+                frontImg: "місяць.jpg",
+                altBack: "Золотий місяць у хмарах",
+                altFront: "Місяць Таро"
+            },
+            {
+                id: 4,
+                title: "ЗІРКА",
+                backImg: "Celestial Vintage Tarot Cards by Chikovnaya_ An Artistic Decorative Illustration.jpg",
+                frontImg: "зірка.jpg",
+                altBack: "Вінтажне сонце та хмари",
+                altFront: "Зірка Таро"
+            },
+            {
+                id: 5,
+                title: "СОНЦЕ",
+                backImg: "download (1).jpg",
+                frontImg: "сонце.jpg",
+                altBack: "Зоряне небо з візерунчастими кутками",
+                altFront: "Сонце Таро"
+            },
+            {
+                id: 6,
+                title: "СМЕРТЬ",
+                backImg: "download.jpg",
+                frontImg: "смерть.jpg",
+                altBack: "Астрономічна карта зодіаку",
+                altFront: "Смерть Таро"
+            }
+        ];
+
+        let currentCardIndex = 0;
+
+        const deckContainer = document.getElementById('deck-container');
+        const cardsBoard = document.getElementById('cards-board');
+        const cardCounter = document.getElementById('card-counter');
+        const deckStatus = document.getElementById('deck-status');
+        const resetBtn = document.getElementById('reset-btn');
+
+        // Draw next card function
+        function drawNextCard() {
+            if (currentCardIndex >= tarotCards.length) {
+                return; // All cards drawn
+            }
+
+            const cardData = tarotCards[currentCardIndex];
+            
+            // Create Card Element Wrapper
+            const cardWrapper = document.createElement('div');
+            cardWrapper.className = 'drawn-card perspective-1000 w-36 h-60 md:w-44 md:h-72 cursor-pointer transition-all duration-500 opacity-0 transform translate-y-8 scale-90';
+            cardWrapper.id = `card-wrapper-${cardData.id}`;
+            
+            // Inner 3D container
+            cardWrapper.innerHTML = `
+                <div class="card-inner w-full h-full" id="card-inner-${cardData.id}" onclick="flipCard(${cardData.id})">
+                    <!-- Back of Card (Shown first when drawn) -->
+                    <div class="card-face card-back bg-slate-900">
+                        <img src="${cardData.backImg}" 
+                             alt="${cardData.altBack}" 
+                             class="w-full h-full object-cover"
+                             onerror="this.src='https://placehold.co/300x500/1e1b4b/fbbf24?text=Карта+${cardData.id}'">
+                        <div class="absolute inset-0 border-2 border-amber-400/40 rounded-xl pointer-events-none"></div>
+                    </div>
+                    <!-- Front of Card (Revealed after flip) -->
+                    <div class="card-face card-front bg-slate-900">
+                        <img src="${cardData.frontImg}" 
+                             alt="${cardData.altFront}" 
+                             class="w-full h-full object-cover"
+                             onerror="this.src='https://placehold.co/300x500/311042/fef08a?text=${encodeURIComponent(cardData.title)}'">
+                        <div class="absolute inset-0 border-2 border-amber-300/50 rounded-xl pointer-events-none"></div>
+                    </div>
+                </div>
+            `;
+
+            cardsBoard.appendChild(cardWrapper);
+
+            // Trigger animation
+            setTimeout(() => {
+                cardWrapper.classList.remove('opacity-0', 'translate-y-8', 'scale-90');
+                cardWrapper.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+            }, 50);
+
+            currentCardIndex++;
+            updateUI();
+        }
+
+        // Flip Card Function
+        function flipCard(id) {
+            const cardInner = document.getElementById(`card-inner-${id}`);
+            if (cardInner) {
+                cardInner.classList.toggle('is-flipped');
+            }
+        }
+
+        // Update Counter & UI State
+        function updateUI() {
+            const remaining = tarotCards.length - currentCardIndex;
+            cardCounter.innerText = `Залишилось карт: ${remaining} / ${tarotCards.length}`;
+
+            if (remaining === 0) {
+                deckStatus.innerText = "Усі 6 карт розкладено";
+                deckContainer.classList.remove('cursor-pointer', 'deck-glow');
+                deckContainer.classList.add('opacity-60', 'cursor-not-allowed');
+                resetBtn.classList.remove('hidden');
+            } else {
+                deckStatus.innerText = "Натисніть щоб витягти";
+                deckContainer.classList.add('cursor-pointer', 'deck-glow');
+                deckContainer.classList.remove('opacity-60', 'cursor-not-allowed');
+                resetBtn.classList.add('hidden');
+            }
+        }
+
+        // Reset Deck to Start Again
+        function resetDeck() {
+            cardsBoard.innerHTML = '';
+            currentCardIndex = 0;
+            updateUI();
+        }
+
+        // Event Listener for Deck Click
+        deckContainer.addEventListener('click', () => {
+            if (currentCardIndex < tarotCards.length) {
+                drawNextCard();
+            }
+        });
+
+        // Initialize UI
+        updateUI();
+    </script>
+</body>
+</html>
