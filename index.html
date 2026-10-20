@@ -19,7 +19,7 @@
       color: #f3e5ab;
     }
 
-    /* Фон зі столом, свічками та кристалами */
+    /* Фон со столом, свечами и кристаллами */
     .bg-table {
       position: fixed;
       top: 0;
@@ -33,14 +33,14 @@
       z-index: 1;
     }
 
-    /* Легке темне перекриття для кращої читабельності */
+    /* Легкое затемнение для читаемости */
     .bg-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(10, 5, 20, 0.25);
+      background: rgba(10, 5, 20, 0.2);
       z-index: 2;
       pointer-events: none;
     }
@@ -87,7 +87,7 @@
       gap: 25px;
     }
 
-    /* Коробка з колодою */
+    /* Коробка колоды */
     .deck-panel {
       display: flex;
       flex-direction: column;
@@ -123,7 +123,7 @@
       color: #f7d774;
     }
 
-    /* Сітка карт строго 3 в ряд */
+    /* Сетка 3 в ряд */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(3, 160px);
@@ -133,7 +133,6 @@
       width: 100%;
     }
 
-    /* Окремий слот під карту */
     .card-slot {
       width: 160px;
       height: 265px;
@@ -198,7 +197,6 @@
       object-fit: cover;
     }
 
-    /* Нижнє поле статусу */
     .footer-panel {
       background: rgba(15, 10, 25, 0.85);
       border: 1px solid #d4af37;
@@ -245,7 +243,6 @@
 </head>
 <body>
 
-  <!-- Фон зі свічками та столом -->
   <div class="bg-table"></div>
   <div class="bg-overlay"></div>
 
@@ -256,7 +253,7 @@
     </header>
 
     <div class="main-workspace">
-      <!-- Коробка колоди -->
+      <!-- Коробка колоды -->
       <div class="deck-panel">
         <div class="deck-box" id="deckBox">
           <img src="book-cover.jpg" alt="Обкладинка Колоди Таро" class="deck-cover">
@@ -264,7 +261,7 @@
         <div class="deck-counter">Залишилось карт: <span id="cardsLeft">6</span>/6</div>
       </div>
 
-      <!-- Сітка строго 3 в ряд (2 ряди x 3 колонки = 6 карт) -->
+      <!-- Расклад строго 3 в ряд (2 ряда по 3 карты) -->
       <div class="cards-grid">
         <!-- Ряд 1 -->
         <div class="card-slot"><div class="card" id="card-0"><div class="card-face card-back"><img src="back-1.jpg" alt="Сорочка 1"></div><div class="card-face card-front"><img src="tower.jpg" alt="Вежа"></div></div></div>
@@ -294,14 +291,12 @@
     const cardsLeft = document.getElementById('cardsLeft');
     const resetBtn = document.getElementById('resetBtn');
 
-    // Клік на колоду
     deckBox.addEventListener('click', () => {
       if (currentIndex >= 6) {
         statusText.innerText = "Усі 6 карт вже витягнуті та розкладені 3 в ряд!";
         return;
       }
 
-      // Не дозволяємо витягати наступну, поки поточна не перевернута
       if (currentIndex > 0 && !cardStates[currentIndex - 1].flipped) {
         statusText.innerText = "Спочатку переверніть поточну карту, натиснувши на неї!";
         return;
@@ -316,7 +311,6 @@
       statusText.innerText = `Витягнуто карту №${currentIndex + 1}. Натисніть на неї!`;
     });
 
-    // Налаштування кліків по картах для перевертання
     for (let i = 0; i < 6; i++) {
       const cardEl = document.getElementById(`card-${i}`);
       cardEl.addEventListener('click', () => {
@@ -340,7 +334,6 @@
       });
     }
 
-    // Скидання розкладу
     function resetAll() {
       currentIndex = 0;
       cardStates = Array(6).fill({ drawn: false, flipped: false });
