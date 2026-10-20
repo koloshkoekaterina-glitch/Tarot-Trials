@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таро Випробування — Інтерактив</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Marcellus&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Marcellus', serif;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow-x: hidden;
+            /* MAIN TABLE BACKGROUND */
+            background-image: url('tarot-table.jpg');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            background-attachment: fixed;
+            background-color: #0c0a09;
+        }
+
+        h1, h2, h3, .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* 3D Perspective Container */
+        .perspective-1200 {
+            perspective: 1200px;
+        }
+
+        /* 3D Card Flip styling */
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Custom Box Shadows & Glows */
+        .gold-glow {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), 0 0 25px rgba(234, 179, 8, 0.35);
+        }
+
+        .gold-glow-hover:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95), 0 0 40px rgba(234, 179, 8, 0.65);
+        }
+
+        /* Emerge / Slide Animation to the Side or Top without overlapping */
+        .card-emerged {
+            transform: translateY(-80px) scale(1.02) !important;
+        }
+
+        @media (min-width: 1024px) {
+            .card-emerged {
+                transform: translateX(20px) translateY(-20px) scale(1.05) !important;
+            }
+        }
+
+        /* Floating Animation */
+        @keyframes subtle-float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .animate-float {
+            animation: subtle-float 3.5s ease-in-out infinite;
+        }
+
+        /* Particle Magic Effect */
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            background: radial-gradient(circle, #fff 10%, #ffd700 40%, transparent 70%);
+            border-radius: 50%;
+            animation: sparkle-animation 1.2s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes sparkle-animation {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(calc(-50% + var(--tw-x)), calc(-50% + var(--tw-y))) scale(1.5) rotate(180deg);
+                opacity: 0;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(12, 10, 9, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d97706;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen w-screen relative text-amber-100 flex flex-col justify-between items-center p-3 sm:p-6">
+
+    <!-- Subtle Overlay for contrast over background -->
+    <div class="fixed inset-0 bg-black/40 backdrop-blur-[1px] pointer-events-none"></div>
+
+    <!-- Header / Title Banner -->
+    <header class="text-center mt-2 z-10 w-full max-w-4xl">
+        <h1 class="text-3xl sm:text-5xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-yellow-300 to-amber-200 drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)] uppercase">
+            Таро Випробування
+        </h1>
+        <div class="mt-2 flex justify-center">
+            <p id="instruction-text" class="text-xs sm:text-base text-amber-100 font-medium tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] bg-slate-950/80 border border-amber-400/50 px-6 py-2 rounded-full backdrop-blur-md shadow-2xl transition-all duration-300">
+                ✨ Натисніть на коробку, щоб витягнути карту ✨
+            </p>
+        </div>
+    </header>
+
+    <!-- Main Interactive Layout Grid: Deck Box on Left, Drawn Card and Side-Panel on Right -->
+    <main class="relative w-full max-w-6xl flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 my-4 z-10">
+
+        <!-- LEFT SIDE: TAROT DECK BOX (book-cover.jpg) -->
+        <div class="flex flex-col items-center justify-center">
+            <div id="tarot-box" 
+                 onclick="handleBoxClick(event)"
+                 class="relative w-56 sm:w-72 md:w-80 h-[380px] sm:h-[460px] md:h-[500px] rounded-2xl cursor-pointer transition-all duration-500 transform hover:-translate-y-2 gold-glow gold-glow-hover animate-float group shadow-2xl border-2 border-amber-400/80 bg-stone-950">
+                
+                <!-- Box Cover Image -->
+                <img id="img-box-cover" src="book-cover.jpg" onerror="this.onerror=null; this.src='https://placehold.co/400x600/1e1b4b/eab308?text=book-cover.jpg';" 
+                     alt="Коробка Таро" 
+                     class="w-full h-full object-contain p-1 rounded-2xl group-hover:scale-105 transition-transform duration-500">
+                
+                <div class="absolute inset-0 bg-gradient-to-tr from-amber-500/10 via-transparent to-amber-200/20 pointer-events-none rounded-2xl"></div>
+
+                <!-- Hint Badge on Box -->
+                <div id="box-badge" class="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-slate-950/90 border border-amber-400/80 px-4 py-1.5 rounded-full text-xs text-amber-200 font-bold tracking-wider shadow-2xl whitespace-nowrap group-hover:bg-amber-950 transition-colors z-30">
+                    <i class="fa-solid fa-hand-pointer mr-1.5 animate-bounce text-amber-300"></i> Натисніть на коробку
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE: DRAWN CARD CONTAINER (FULL HEIGHT, FULL FIT, NO TEXT OVERLAY) -->
+        <div id="card-stage" class="relative flex flex-col lg:flex-row items-center justify-center gap-6 min-h-[450px] sm:min-h-[550px] md:min-h-[620px] w-full max-w-2xl opacity-0 pointer-events-none transition-all duration-700">
+            
+            <!-- TAROT CARD (3D Flippable) -->
+            <div id="tarot-card" 
+                 onclick="handleCardClick(event)"
+                 class="perspective-1200 relative w-72 sm:w-80 md:w-[360px] h-[480px] sm:h-[540px] md:h-[600px] rounded-2xl transition-all duration-700 cursor-pointer">
+                
+                <!-- 3D Card Inner -->
+                <div id="card-inner" class="relative w-full h-full transform-style-3d rounded-2xl shadow-2xl">
+                    
+                    <!-- CARD BACK / COVER (Сорочка) -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden rounded-2xl overflow-hidden border-2 border-amber-300/80 bg-stone-900 shadow-2xl p-1.5 flex items-center justify-center">
+                        <img id="img-card-back" src="gold starts.jpg" onerror="this.onerror=null; this.src='https://placehold.co/400x600/0f172a/fde047?text=Cover';" 
+                             alt="Обкладинка карти" 
+                             class="w-full h-full object-contain rounded-xl">
+                    </div>
+
+                    <!-- CARD FRONT (Лицева сторона) - FULL DISPLAY USING object-contain SO NO TEXT IS CUT OFF -->
+                    <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 rounded-2xl overflow-hidden border-2 border-amber-400 bg-slate-950 shadow-2xl p-1.5 flex items-center justify-center">
+                        <img id="img-card-front" src="вежа.jpg" onerror="this.onerror=null; this.src='https://placehold.co/400x600/2e1065/fde047?text=Card';" 
+                             alt="Лицева сторона карти" 
+                             class="w-full h-full object-contain rounded-xl">
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- SIDE INFO PANEL: Displays Card Title & Descriptions Separately (NO OVERLAPPING!) -->
+            <div id="side-info-panel" class="hidden lg:flex flex-col items-center lg:items-start text-center lg:text-left bg-slate-950/85 border border-amber-400/60 p-6 rounded-2xl backdrop-blur-md shadow-2xl max-w-xs transition-all duration-500">
+                <span class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-1">Витягнута карта:</span>
+                <h2 id="card-title-display" class="text-2xl font-black text-amber-200 tracking-wider mb-3 drop-shadow">
+                    ---
+                </h2>
+                <div class="w-full border-b border-amber-400/30 mb-3"></div>
+                <p id="card-desc-display" class="text-xs text-amber-100/90 leading-relaxed italic">
+                    Натисніть на карту, щоб відкрити її таїнство та прочитати послання.
+                </p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer Controls & Info -->
+    <footer class="z-10 mb-2 text-center flex flex-col items-center gap-3">
+        <!-- Action Control Button -->
+        <button id="reset-btn" 
+                onclick="resetExperience()" 
+                class="hidden px-8 py-3 bg-gradient-to-r from-amber-800 via-amber-600 to-yellow-600 text-amber-50 font-bold rounded-full shadow-2xl border border-amber-300/60 hover:scale-105 active:scale-95 transition-all duration-300 text-xs sm:text-sm tracking-widest uppercase">
+            <i class="fa-solid fa-rotate-left mr-2"></i> Покласти карту назад у коробку
+        </button>
+
+        <p class="text-xs text-amber-200/70 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+            Інтерактивний розклад Таро
+        </p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Повний масив із 6 карт Таро та їхніх унікальних сорочок
+        const cardsData = [
+            { 
+                name: "ВЕЖА", 
+                back: "gold starts.jpg", 
+                front: "вежа.jpg",
+                desc: "Символ трансформації, руйнування ілюзій та визволення нової сили."
+            },
+            { 
+                name: "ЗІРКА", 
+                back: "star.jpg", 
+                front: "зірка.jpg",
+                desc: "Символ надії, натхнення, гармонії та світлого майбутнього."
+            },
+            { 
+                name: "КОЛЕСО ФОРТУНИ", 
+                back: "truth.jpg", 
+                front: "фортуна.jpg",
+                desc: "Символ циклічності, змін домислу та поворотних моментів долі."
+            },
+            { 
+                name: "СОНЦЕ", 
+                back: "sun.jpg", 
+                front: "сонце.jpg",
+                desc: "Символ радості, успіху, ясності, життєвої енергії та істини."
+            },
+            { 
+                name: "МІСЯЦЬ", 
+                back: "lune.jpg", 
+                front: "місяць.jpg",
+                desc: "Символ інтуїції, таємниць, підсвідомості та внутрішніх видінь."
+            },
+            { 
+                name: "СМЕРТЬ", 
+                back: "cloud night.jpg", 
+                front: "смерть.jpg",
+                desc: "Символ завершення старого етапу та початку глибокого оновлення."
+            }
+        ];
+
+        let currentCardIndex = 0;
+        let isCardDrawn = false;
+        let isCardFlipped = false;
+
+        const box = document.getElementById('tarot-box');
+        const cardStage = document.getElementById('card-stage');
+        const card = document.getElementById('tarot-card');
+        const cardInner = document.getElementById('card-inner');
+        const imgCardBack = document.getElementById('img-card-back');
+        const imgCardFront = document.getElementById('img-card-front');
+        const instructionText = document.getElementById('instruction-text');
+        const boxBadge = document.getElementById('box-badge');
+        const resetBtn = document.getElementById('reset-btn');
+        const sideInfoPanel = document.getElementById('side-info-panel');
+        const cardTitleDisplay = document.getElementById('card-title-display');
+        const cardDescDisplay = document.getElementById('card-desc-display');
+
+        // Step 1: Click Box -> Draw Random Card from Deck
+        function handleBoxClick(event) {
+            if (isCardDrawn) return;
+            event.stopPropagation();
+
+            // Random selection of 1 of 6 cards
+            currentCardIndex = Math.floor(Math.random() * cardsData.length);
+            const selectedCard = cardsData[currentCardIndex];
+
+            // Set images for back cover and front side
+            imgCardBack.src = selectedCard.back;
+            imgCardFront.src = selectedCard.front;
+
+            isCardDrawn = true;
+
+            box.classList.remove('animate-float', 'hover:-translate-y-2');
+            boxBadge.style.opacity = '0';
+
+            // Show Card Stage
+            cardStage.classList.remove('pointer-events-none', 'opacity-0');
+            cardStage.classList.add('opacity-100');
+            card.classList.add('card-emerged');
+
+            createMagicSparkles(event.clientX || window.innerWidth / 2, event.clientY || window.innerHeight / 2, 25);
+
+            instructionText.innerHTML = "✨ Натисніть на обкладинку карти, щоб перевернути її ✨";
+            instructionText.classList.add('text-yellow-300');
+
+            // Side info panel initialization
+            cardTitleDisplay.innerText = "Таємна Карта";
+            cardDescDisplay.innerText = "Натисніть на карту, щоб розкрити її лицьову сторону.";
+            sideInfoPanel.classList.remove('hidden');
+        }
+
+        // Step 2: Click Card -> Flip 3D to Reveal Front
+        function handleCardClick(event) {
+            if (!isCardDrawn || isCardFlipped) return;
+            event.stopPropagation();
+
+            isCardFlipped = true;
+            cardInner.classList.add('rotate-y-180');
+
+            const rect = card.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            setTimeout(() => {
+                createMagicSparkles(centerX, centerY, 35);
+            }, 250);
+
+            const selectedCard = cardsData[currentCardIndex];
+            
+            // Update Title and Info outside of card (Separate Side Display)
+            instructionText.innerHTML = `🔮 Витягнуто карту: <strong class="text-yellow-300 font-extrabold">${selectedCard.name}</strong> 🔮`;
+            cardTitleDisplay.innerText = selectedCard.name;
+            cardDescDisplay.innerText = selectedCard.desc;
+
+            resetBtn.classList.remove('hidden');
+        }
+
+        // Step 3: Reset Card Back into Box
+        function resetExperience() {
+            cardInner.classList.remove('rotate-y-180');
+            
+            setTimeout(() => {
+                card.classList.remove('card-emerged');
+                cardStage.classList.remove('opacity-100');
+                cardStage.classList.add('opacity-0', 'pointer-events-none');
+                
+                setTimeout(() => {
+                    isCardDrawn = false;
+                    isCardFlipped = false;
+
+                    box.classList.add('animate-float', 'hover:-translate-y-2');
+                    boxBadge.style.opacity = '1';
+
+                    instructionText.innerHTML = "✨ Натисніть на коробку, щоб витягнути карту ✨";
+                    instructionText.classList.remove('text-yellow-300');
+                    resetBtn.classList.add('hidden');
+                    sideInfoPanel.classList.add('hidden');
+                }, 400);
+            }, 300);
+        }
+
+        // Magic Sparkle Particle Effect
+        function createMagicSparkles(x, y, amount = 20) {
+            for (let i = 0; i < amount; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+
+                const size = Math.random() * 8 + 4;
+                sparkle.style.width = `${size}px`;
+                sparkle.style.height = `${size}px`;
+
+                sparkle.style.left = `${x}px`;
+                sparkle.style.top = `${y}px`;
+
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 140 + 30;
+                const destinationX = Math.cos(angle) * distance;
+                const destinationY = Math.sin(angle) * distance;
+
+                sparkle.style.setProperty('--tw-x', `${destinationX}px`);
+                sparkle.style.setProperty('--tw-y', `${destinationY}px`);
+
+                document.body.appendChild(sparkle);
+
+                setTimeout(() => {
+                    sparkle.remove();
+                }, 1200);
+            }
+        }
+    </script>
+</body>
+</html>
